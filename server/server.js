@@ -55,18 +55,32 @@ app.use((err, req, res, next) => {
 });
 
 // Connect to MongoDB and start server
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => {
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
+    
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV}`);
     });
-  })
-  .catch((err) => {
-    console.error('Failed to connect to MongoDB', err);
-    process.exit(1);
-  });
+  } catch (err) {
+    console.error('Failed to connect to MongoDB:', err.message);
+    console.log('Please ensure MongoDB is running or update MONGODB_URI in .env file');
+    console.log('You can:');
+    console.log('1. Install and start MongoDB locally');
+    console.log('2. Use MongoDB Atlas (cloud) and update MONGODB_URI');
+    console.log('3. Start the server without database for API testing');
+    
+    // Start server without database for development
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT} (without database)`);
+      console.log('Some features will not work without database connection');
+    });
+  }
+};
+
+connectDB();
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
